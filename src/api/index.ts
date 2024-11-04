@@ -25,3 +25,11 @@ export const getPokemonDetails = async (url: string): Promise<Pokemon> => {
   const response = await axios.get<Pokemon>(url);
   return response.data;
 };
+
+export const getPokemonDetailsById = async (id: number): Promise<Pokemon> => {
+  const response = await axios.get<Pokemon>(
+    `${POKEAPI_BASE_URL}/pokemon/${id.toString()}/`
+  );
+  return response.data;
+};
+
