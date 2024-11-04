@@ -1,0 +1,39 @@
+body {
+  overflow: hidden;
+}
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.row,
+.rowLoading {
+  padding: 10px;
+  height: 170px;
+}
+
+.rowLoading {
+  font-style: italic;
+  color: #999;
+}
+
+.loading {
+  padding: 10px;
+  text-align: center;
+  color: #555;
+}
+
+.error {
+  padding: 10px;
+  text-align: center;
+  color: red;
+  background-color: #ffe6e6;
+}
