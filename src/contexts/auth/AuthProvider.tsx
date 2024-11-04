@@ -8,17 +8,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const storedAuth = localStorage.getItem("isAuthenticated");
     return storedAuth === "true";
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (): Promise<boolean> => {
+    setIsLoading(true);
     return new Promise((resolve) => {
       setTimeout(() => {
-        if (email && password) {
-          setIsAuthenticated(true);
-          localStorage.setItem("isAuthenticated", "true");
-          resolve(true);
-        } else {
-          resolve(false);
-        }
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        localStorage.setItem("isAuthenticated", "true");
+        resolve(true);
       }, 1000);
     });
   };
@@ -29,7 +28,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
