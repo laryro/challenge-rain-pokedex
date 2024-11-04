@@ -9,7 +9,6 @@ import { Pokemon } from "../../types/pokemon";
 import styles from "./PokemonList.module.css";
 import PokemonCard from "../PokemonCard/PokemonCard";
 import useAvailableHeight from "../../hooks/useAvailableHeight";
-import { Filters } from "../Filters";
 import { usePokemonList } from "../../hooks/usePokemonList";
 
 const ROW_HEIGHT = 170;
@@ -58,7 +57,6 @@ export const PokemonList: React.FC = () => {
 
   return (
     <div>
-      <Filters />
       <div className={styles.container} ref={parentElementRef}>
         {error && <p className={styles.error}>{error}</p>}
         <InfiniteLoader
