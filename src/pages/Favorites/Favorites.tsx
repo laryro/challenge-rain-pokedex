@@ -1,38 +1,42 @@
-// src/pages/Favorites/Favorites.tsx
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import PokemonCard from "../../components/PokemonCard/PokemonCard";
 import styles from "./Favorites.module.css";
-import { getPokemonDetailsById } from "../../api";
 import { Pokemon } from "../../types/pokemon";
+import { getPokemonListByIds } from "../../api/pokemon";
 
 export const FavoritesPage: React.FC = () => {
   const [favoritePokemons, setFavoritePokemons] = useState<Pokemon[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const fetchFavoritePokemons = async (ids: number[]) => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const fetchPromises = ids.map((id) => getPokemonDetailsById(id));
-      const pokemons = await Promise.all(fetchPromises);
-      setFavoritePokemons(pokemons);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load favorite Pokémon.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const storedFavorites = localStorage.getItem("favorites");
+  const favoriteIds = JSON.parse(storedFavorites || "") as number[];
 
   useEffect(() => {
-    const storedFavorites = localStorage.getItem("favorites");
-    if (storedFavorites) {
-      const favoriteIds = JSON.parse(storedFavorites) as number[];
-      const sortedIds = favoriteIds.sort((a, b) => a - b);
-      void fetchFavoritePokemons(sortedIds);
-    }
+    const fetchFavoritePokemons = async () => {
+      try {
+        setIsLoading(true);
+        const pokemonList = await getPokemonListByIds(favoriteIds);
+        setFavoritePokemons(pokemonList);
+      } catch {
+        setError("Error trying to load Favorite Pokémon data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void fetchFavoritePokemons();
   }, []);
+
+  const onRemoveFavorite = useCallback(
+    (id: number) => {
+      const newFavoritePokemons = favoritePokemons.filter(
+        (pokemon) => pokemon.id != id
+      );
+      setFavoritePokemons([...newFavoritePokemons]);
+    },
+    [favoritePokemons]
+  );
 
   const hasPokemons = !isLoading && favoritePokemons.length > 0;
   const noPokemons = !isLoading && favoritePokemons.length === 0;
@@ -45,7 +49,13 @@ export const FavoritesPage: React.FC = () => {
       {hasPokemons && (
         <div className={styles.list}>
           {favoritePokemons.map((pokemon) => (
-            <PokemonCard key={pokemon.id} pokemon={pokemon} />
+            <PokemonCard
+              key={pokemon.id}
+              pokemon={pokemon}
+              onRemoveFavorite={() => {
+                onRemoveFavorite(pokemon.id);
+              }}
+            />
           ))}
         </div>
       )}

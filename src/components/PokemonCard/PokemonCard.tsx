@@ -4,9 +4,13 @@ import { Pokemon } from "../../types/pokemon";
 
 interface PokemonCardProps {
   pokemon: Pokemon;
+  onRemoveFavorite: () => void;
 }
 
-const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
+const PokemonCard: React.FC<PokemonCardProps> = ({
+  pokemon,
+  onRemoveFavorite,
+}) => {
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
 
   useEffect(() => {
@@ -25,12 +29,13 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
       const updated = favorites.filter((id) => id !== pokemon.id);
       localStorage.setItem("favorites", JSON.stringify(updated));
       setIsFavorite(false);
+      onRemoveFavorite();
     } else {
       favorites.push(pokemon.id);
       localStorage.setItem("favorites", JSON.stringify(favorites));
       setIsFavorite(true);
     }
-  }, [pokemon.id]);
+  }, [pokemon.id, onRemoveFavorite]);
 
   return (
     <div className={styles.card}>

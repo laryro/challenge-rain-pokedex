@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Pokemon, PokemonListResponseResult } from "../types/pokemon";
-import { getPokemonDetails, getPokemonList } from "../api";
+import { getPokemonDetails, getPokemonList } from "../api/pokemon";
 
 export const intersectPokemons = (
   list1: Pokemon[],
