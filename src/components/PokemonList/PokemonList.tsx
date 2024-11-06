@@ -1,5 +1,3 @@
-// src/components/PokemonList.tsx
-
 import React, { useCallback } from "react";
 import InfiniteLoader from "react-window-infinite-loader";
 import { FixedSizeList as List, ListChildComponentProps } from "react-window";

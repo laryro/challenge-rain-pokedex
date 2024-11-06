@@ -4,7 +4,7 @@ import { Pokemon } from "../../types/pokemon";
 
 interface PokemonCardProps {
   pokemon: Pokemon;
-  onRemoveFavorite: () => void;
+  onRemoveFavorite?: () => void;
 }
 
 const PokemonCard: React.FC<PokemonCardProps> = ({
@@ -29,7 +29,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       const updated = favorites.filter((id) => id !== pokemon.id);
       localStorage.setItem("favorites", JSON.stringify(updated));
       setIsFavorite(false);
-      onRemoveFavorite();
+      if (onRemoveFavorite) onRemoveFavorite();
     } else {
       favorites.push(pokemon.id);
       localStorage.setItem("favorites", JSON.stringify(favorites));
