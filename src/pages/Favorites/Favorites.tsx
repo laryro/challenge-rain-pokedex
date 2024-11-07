@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import PokemonCard from "../../components/PokemonCard/PokemonCard";
-import styles from "./Favorites.module.css";
+import styles from "../../styles/Lists.module.css";
 import { Pokemon } from "../../types/pokemon";
 import { getPokemonListByIds } from "../../api/pokemon";
 
@@ -9,14 +9,15 @@ export const FavoritesPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const storedFavorites = localStorage.getItem("favorites");
-  const favoriteIds = JSON.parse(storedFavorites || "") as number[];
-
   useEffect(() => {
+    const storedFavorites = localStorage.getItem("favorites");
+    const favoriteIds = JSON.parse(storedFavorites || "") as number[];
+    const sortedFavorites = favoriteIds.sort((a, b) => a - b);
+
     const fetchFavoritePokemons = async () => {
       try {
         setIsLoading(true);
-        const pokemonList = await getPokemonListByIds(favoriteIds);
+        const pokemonList = await getPokemonListByIds(sortedFavorites);
         setFavoritePokemons(pokemonList);
       } catch {
         setError("Error trying to load Favorite Pokémon data");
