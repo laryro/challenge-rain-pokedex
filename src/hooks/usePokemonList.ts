@@ -1,6 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Pokemon, PokemonListResponseResult } from "../types/pokemon";
-import { getPokemonDetails, getPokemonList } from "../api/pokemon";
+import {
+  getPokemonByType,
+  getPokemonDetails,
+  getPokemonList,
+} from "../api/pokemon";
+import { useFiltersContext } from "../contexts/filters";
 
 export const intersectPokemons = (
   list1: Pokemon[],
@@ -10,82 +15,56 @@ export const intersectPokemons = (
   return list1.filter((pokemon) => set2.has(pokemon.id));
 };
 
-const ROWS_TO_FETCH = 10;
-const POKEMONS_PER_ROW = 3;
-
-const groupIntoRows = (
-  flatList: Pokemon[],
-  pokemonsPerRow: number
-): Pokemon[][] => {
-  const rows: Pokemon[][] = [];
-  for (let i = 0; i < flatList.length; i += pokemonsPerRow) {
-    rows.push(flatList.slice(i, i + pokemonsPerRow));
-  }
-  return rows;
-};
-
-interface UsePokemonListProps {
-  rows?: number;
-  columns?: number;
-}
-
-export const usePokemonList = (props?: UsePokemonListProps) => {
-  const [pokemons, setPokemons] = useState<Pokemon[][]>([]);
-  const [offset, setOffset] = useState<number>(0);
-  const [hasMore, setHasMore] = useState<boolean>(true);
+export const usePokemonList = () => {
+  const [pokemons, setPokemons] = useState<Pokemon[]>([]);
+  const [allPokemon, setAllPokemon] = useState<Pokemon[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>("");
+  const { filters } = useFiltersContext();
 
-  const pokemonsPerRow = props?.columns || POKEMONS_PER_ROW;
-  const rowsToFetch = props?.rows || ROWS_TO_FETCH;
-  const limit = pokemonsPerRow * rowsToFetch;
+  const fetchAllPokemon = async () => {
+    const { results } = await getPokemonList();
+    const detailedPromises = results.map((pokemon: PokemonListResponseResult) =>
+      getPokemonDetails(pokemon.url)
+    );
+    const detailedPokemon = await Promise.all(detailedPromises);
 
-  const loadMorePokemons = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+    return detailedPokemon;
+  };
 
-    setIsLoading(true);
-    setError(null);
-
-    let fetchedPokemons: Pokemon[] = [];
-    try {
-      const listResponse = await getPokemonList({ offset, limit });
-      const { results, next } = listResponse;
-
-      const detailedPromises = results.map(
-        (pokemon: PokemonListResponseResult) => getPokemonDetails(pokemon.url)
-      );
-      fetchedPokemons = await Promise.all(detailedPromises);
-
-      if (next) {
-        setOffset((prevOffset) => prevOffset + limit);
-        setHasMore(true);
-      } else {
-        setHasMore(false);
-      }
-
-      const groupedPokemons = groupIntoRows(fetchedPokemons, pokemonsPerRow);
-      setPokemons((prevState) => [...prevState, ...groupedPokemons]);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load Pokémon.");
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [hasMore, isLoading, limit, offset, pokemonsPerRow]);
+  const type = filters.type;
 
   useEffect(() => {
-    setPokemons([]);
-    setOffset(0);
-    setHasMore(true);
-    setIsLoading(false);
-    setError(null);
-  }, []);
+    const filterPokemons = async () => {
+      if (type !== "") {
+        const filteredPokemons = await getPokemonByType(type);
+        setPokemons(filteredPokemons);
+        return;
+      } else {
+        if (allPokemon.length === 0) {
+          setPokemons([]);
+          setIsLoading(true);
+          const detailedPokemon = await fetchAllPokemon();
+          setAllPokemon(detailedPokemon);
+          setPokemons(detailedPokemon);
+          setIsLoading(false);
+        } else {
+          setPokemons(allPokemon);
+        }
+      }
+    };
+
+    try {
+      void filterPokemons();
+    } catch (error) {
+      console.error(error);
+      setError("Error trying to load Pokémon data");
+    }
+  }, [allPokemon, type]);
 
   return {
+    filters,
     pokemons,
-    loadMorePokemons,
-    hasMore,
     isLoading,
     error,
   };

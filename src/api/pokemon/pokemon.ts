@@ -8,20 +8,9 @@ import {
 } from "../../types/pokemon";
 import { POKEAPI_BASE_URL } from "../constants";
 
-interface PokemonListType {
-  limit?: number;
-  offset?: number;
-}
-
-export const getPokemonList = async ({
-  offset = 0,
-  limit = 0,
-}: PokemonListType): Promise<PokemonListResponse> => {
+export const getPokemonList = async (): Promise<PokemonListResponse> => {
   const response = await axios.get<PokemonListResponse>(
-    `${POKEAPI_BASE_URL}/pokemon`,
-    {
-      params: { offset, limit },
-    }
+    `${POKEAPI_BASE_URL}/pokemon?limit=1500`
   );
   return response.data;
 };

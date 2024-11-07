@@ -39,13 +39,16 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
 
   return (
     <div className={styles.card}>
-      <img
-        src={pokemon.sprites.front_default}
-        alt={pokemon.name}
-        className={styles.image}
-      />
+      <div className={styles.image}>
+        {pokemon.sprites.front_default ? (
+          <img src={pokemon.sprites.front_default} alt={pokemon.name} />
+        ) : (
+          <span>No image</span>
+        )}
+      </div>
+
       <div className={styles.details}>
-        <h3 className={styles.name}>{pokemon.name}</h3>
+        <p className={styles.name}>{pokemon.name}</p>
         <div className={styles.types}>
           {pokemon.types.map((pokemonType) => (
             <span

@@ -10,6 +10,25 @@ export interface PokemonListResponse {
   results: PokemonListResponseResult[];
 }
 
+export interface PokemonTypeListResponse {
+  count: number;
+  results: Array<{
+    name: string;
+    url: string;
+  }>;
+}
+export interface TypeDetailResponse {
+  id: number;
+  name: string;
+  pokemon: Array<{
+    slot: number;
+    pokemon: {
+      name: string;
+      url: string;
+    };
+  }>;
+}
+
 export interface Pokemon {
   id: number;
   name: string;

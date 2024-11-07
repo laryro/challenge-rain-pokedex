@@ -1,0 +1,37 @@
+.navigation [role="navigation"] {
+  padding: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  list-style: none;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.navigation [role="button"] {
+  width: 55px;
+  text-align: center;
+  display: block;
+  padding: 5px 10px;
+  background-color: #ef5350;
+  color: #fff;
+  cursor: pointer;
+}
+
+.navigation .previous [role="button"],
+.navigation .next [role="button"] {
+  width: auto;
+}
+
+.navigation .break [role="button"] {
+  background-color: #ef5350;
+}
+
+.navigation [aria-disabled="true"] {
+  opacity: 50%;
+  cursor: not-allowed;
+}
+
+.navigation .selected [role="button"] {
+  background-color: #b83533;
+}

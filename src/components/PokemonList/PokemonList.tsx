@@ -1,82 +1,85 @@
-import React, { useCallback } from "react";
-import InfiniteLoader from "react-window-infinite-loader";
-import { FixedSizeList as List, ListChildComponentProps } from "react-window";
+import React, { useCallback, useEffect, useState } from "react";
+import ReactPaginate from "react-paginate";
 
+import PokemonCard from "../PokemonCard/PokemonCard";
+import { usePokemonList } from "../../hooks/usePokemonList";
+import { Filters } from "../Filters";
+import { useFilterByName } from "../../hooks/useFilterByName";
+import { useFiltersContext } from "../../contexts/filters";
 import { Pokemon } from "../../types/pokemon";
 
-import styles from "./PokemonList.module.css";
-import PokemonCard from "../PokemonCard/PokemonCard";
-import useAvailableHeight from "../../hooks/useAvailableHeight";
-import { usePokemonList } from "../../hooks/usePokemonList";
+import styles from "../../styles/Lists.module.css";
+import "../../styles/navigation.css";
 
-const ROW_HEIGHT = 170;
-const LIST_WIDTH = "100%";
+const ITEMS_PER_PAGE = 12;
+
+interface PokemonsProps {
+  pokemons: Pokemon[];
+}
+
+function Pokemons({ pokemons }: PokemonsProps) {
+  return (
+    <>
+      {pokemons.map((pokemon) => (
+        <PokemonCard pokemon={pokemon} key={pokemon.name} />
+      ))}
+    </>
+  );
+}
 
 export const PokemonList: React.FC = () => {
-  const {
-    pokemons: pokemonList,
-    loadMorePokemons,
-    hasMore,
-    isLoading,
-    error,
-  } = usePokemonList();
-  const { parentElementRef, height } = useAvailableHeight();
+  const [itemOffset, setItemOffset] = useState<number>(0);
 
-  const isItemLoaded = useCallback(
-    (index: number) => !hasMore || index < pokemonList.length,
-    [hasMore, pokemonList]
-  );
+  const { pokemons, isLoading, error } = usePokemonList();
+  const { filters } = useFiltersContext();
 
-  const Row = useCallback(
-    ({ index, style }: ListChildComponentProps) => {
-      if (!isItemLoaded(index)) {
-        return (
-          <div style={style} className={styles.rowLoading}>
-            Loading...
-          </div>
-        );
-      }
+  const filteredPokemons = useFilterByName({
+    pokemons,
+    name: filters.name,
+  });
 
-      const pokemons: Pokemon[] = pokemonList[index];
+  useEffect(() => {
+    setItemOffset(0);
+  }, [filters.name, filters.type]);
 
-      return (
-        <div style={style} className={styles.row}>
-          {pokemons.map((pokemon) => (
-            <PokemonCard key={pokemon.name} pokemon={pokemon} />
-          ))}
-        </div>
-      );
+  const handlePageClick = useCallback(
+    (event: { selected: number }) => {
+      const newOffset =
+        (event.selected * ITEMS_PER_PAGE) % filteredPokemons.length;
+      setItemOffset(newOffset);
     },
-    [isItemLoaded, pokemonList]
+    [filteredPokemons.length]
   );
 
-  const itemCount = hasMore ? pokemonList.length + 1 : pokemonList.length;
-  const loadMoreItems = isLoading ? () => {} : loadMorePokemons;
+  const endOffset = itemOffset + ITEMS_PER_PAGE;
+  const currentItems = filteredPokemons.slice(itemOffset, endOffset);
+  const pageCount = Math.ceil(filteredPokemons.length / ITEMS_PER_PAGE);
+
+  const noPokemons = !isLoading && filteredPokemons.length === 0;
+  const hasError = !isLoading && error;
 
   return (
-    <div>
-      <div className={styles.container} ref={parentElementRef}>
-        {error && <p className={styles.error}>{error}</p>}
-        <InfiniteLoader
-          isItemLoaded={isItemLoaded}
-          itemCount={itemCount}
-          loadMoreItems={loadMoreItems}
-          threshold={10}
-        >
-          {(props) => (
-            <List
-              height={height}
-              itemCount={itemCount}
-              itemSize={ROW_HEIGHT}
-              width={LIST_WIDTH}
-              {...props}
-            >
-              {Row}
-            </List>
-          )}
-        </InfiniteLoader>
-        {isLoading && <p className={styles.loading}>Loading Pokémons...</p>}
+    <div className={styles.container}>
+      <Filters />
+      <div className={styles.list}>
+        {isLoading && <p>Loading Pokédex...</p>}
+        <Pokemons pokemons={currentItems} />
       </div>
+      <div className="navigation">
+        <ReactPaginate
+          breakLabel="..."
+          nextLabel="next >"
+          onPageChange={handlePageClick}
+          pageRangeDisplayed={2}
+          pageCount={pageCount}
+          previousLabel="< previous"
+          renderOnZeroPageCount={null}
+        />
+      </div>
+      {noPokemons && (
+        <p className={styles.message}>You have no favorite Pokémon yet.</p>
+      )}
+      {hasError && <p className={styles.error}>{error}</p>}
     </div>
   );
 };
